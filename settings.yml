@@ -3,7 +3,7 @@ textGeneration:
   textHLen: 220
   textVLen: 173
   pageLen: 1
-  mode: "ascii" # hex
+  mode: "ascii" # hex, 후에 user input을 통해 받을 수 있도록 수정하기
 
 image:
   imagePath: "./images/"
@@ -15,7 +15,11 @@ textbox:
   topMargin: 80
   sideMargin: 50
   footprint: [ 10, 5 ]
-  noiseThresh: 0.1 # 이미지 전체의 노이즈의 최솟값
+
+imageDenoise:
+  denoiseAmount: 0.05
+  intensityRange: [ 8, 60 ] # [a, b] 하위 a%, 상위 b%의 값에 intensity rescale이 가해짐
+  noiseThresh: 0.05 # 이미지 전체의 노이즈의 최솟값
 
 line:
   footprint: [ 1, 25 ]

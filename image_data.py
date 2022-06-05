@@ -5,7 +5,13 @@ import graph
 import math
 
 
-def get_coords_from_contour(contour):
+def get_coords_from_contour(contour) -> tuple:
+    """
+    contour의 좌표값들중 x와 y좌표의 최대, 최솟값을 반환함
+
+    :param contour: ndarray형태의 x와 y좌표값들의 배열
+    :returns: (min_x, min_y, max_x, max_y)의 형태로 좌표값을 반환함
+    """
     y_coords, x_coords = np.hsplit(contour, 2)
     y_coords = np.hstack(y_coords)
     x_coords = np.hstack(x_coords)

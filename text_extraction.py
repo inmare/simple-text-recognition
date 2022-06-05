@@ -13,7 +13,7 @@ import yaml
 def create_random_data():
     start_time = time.time()
 
-    with open("./settings.yml") as file:
+    with open("./settings.yml", encoding="utf-8") as file:
         settings = yaml.load(file, Loader=yaml.FullLoader)
 
     text_generation_info = settings["textGeneration"]
@@ -32,7 +32,7 @@ def create_random_data():
 
     image_info = settings["image"]
     image_path = image_info["imagePath"]
-    image_perfix = image_info["imagePerfix"]
+    image_perfix = image_info["imagePrefix"]
     start_page = image_info["startPage"]
     end_page = image_info["endPage"]
 
@@ -41,15 +41,17 @@ def create_random_data():
         image_file_path = image_path + image_perfix + str(i) + ".jpg"
         image_file_paths.append(image_file_path)
 
-    textbox_info = settings.textbox
+    textbox_info = settings["textbox"]
+    denoise_info = settings["imageDenoise"]
     textbox_images = []
 
     for image_file_path in image_file_paths:
-        textbox_image = crop.textbox_from_image(image_file_path, textbox_info)
+        textbox_image = crop.textbox_from_image(image_file_path, textbox_info, denoise_info)
         textbox_images.append(textbox_image)
 
     print("Extracting textbox finished")
     debug.show_elapsed_time(start_time)
+    graph.show_image(textbox_images[0], (20, 20))
 
     line_footprint = np.ones((1, 25))
     line_images = []

@@ -13,25 +13,32 @@ def edges_from_image(image: np.ndarray, top_margin: int, side_margin: int) -> np
     return cropped_image
 
 
-def textbox_from_image(image_file_path, textbox_info):
+def textbox_from_image(image_file_path: str, textbox_info: dict, denoise_info: dict) -> np.ndarray:
+    """
+    이미지로부터 텍스트가 있는 구역을 추출함
+
+    :param image_file_path: 이미지가 있는 파일 경로
+    :param textbox_info: 텍스트 구역을 추출하기 위한 정보를 담은 dict
+    :param denoise_info: denoise함수에 대한 정보를 담은 dict
+    :returns: 텍스트 구역의 이미지를 ndarray형식으로 반환함
+    """
     gray_image = process.make_gray_image(image_file_path)
 
     top_margin = textbox_info["topMargin"]
     side_margin = textbox_info["sideMargin"]
     center_image = edges_from_image(gray_image, top_margin, side_margin)
 
-    clear_image = process.reduce_image_noise(center_image, textbox_info["noiseThresh"])
-    cropped_image = textbox_from_image(clear_image, textbox_info["footprint"])
+    clear_image = process.reduce_image_noise(center_image, denoise_info)
 
-    dilated_image = process.make_dilated_image(image, footprint)
+    textbox_footprint = np.ones(tuple(textbox_info["footprint"]))
+    dilated_image = process.make_dilated_image(clear_image, textbox_footprint)
 
     contours = measure.find_contours(dilated_image, 0)
-
     textbox_contour = max(contours, key=len)
     min_x, min_y, max_x, max_y = data.get_coords_from_contour(textbox_contour)
 
-    padding = footprint.shape[0] + 20
-    cropped_image = image[min_y - padding:max_y + padding, min_x - padding:max_x + padding]
+    padding = textbox_footprint.shape[0] + 20
+    cropped_image = clear_image[min_y - padding:max_y + padding, min_x - padding:max_x + padding]
 
     return cropped_image
 
