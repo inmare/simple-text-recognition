@@ -1,0 +1,28 @@
+textGeneration:
+  seed: 1
+  textHLen: 220
+  textVLen: 173
+  pageLen: 1
+  mode: "ascii" # hex
+
+image:
+  imagePath: "./images/"
+  imagePrefix: "page-"
+  startPage: 1
+  endPage: 1
+
+textbox:
+  topMargin: 80
+  sideMargin: 50
+  footprint: [ 10, 5 ]
+  noiseThresh: 0.1 # 이미지 전체의 노이즈의 최솟값
+
+line:
+  footprint: [ 1, 25 ]
+
+char:
+  footprint: [ 1, 2 ]
+  charThresh: 0.5
+
+gapOutlierRange: 5.0
+npzPath: "./data/"
