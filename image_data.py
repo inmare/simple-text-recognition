@@ -44,11 +44,20 @@ def get_coords_from_binary_image(binary_image):
     return min_x, min_y, max_x, max_y
 
 
-def get_line_contour_from_image(image, line_footprint):
+def get_line_contour_from_image(image: np.ndarray, line_footprint: np.ndarray) -> np.ndarray:
+    """
+    이미지로부터 줄들의 contour좌표를 가지고 있는 배열을 반환함
+
+    :param image: 줄을 추출하고 싶은 이미지
+    :param line_footprint: 줄을 추출하기 위한 dilation함수에서 인자로 넣을 footprint
+    :returns: 각 줄의 contour좌표가 있는 numpy배열
+    """
     dilated_image = process.make_dilated_image(image, line_footprint)
     contours = measure.find_contours(dilated_image, 0)
+    # 이미지의 가로길이보다 contour의 길이가 더 길면 줄의 contour이라고 가정
+    # 추후에 더 좋은 방법이 나오면 수정할 수도 있음
     line_contours = np.array([
-        c for c in contours if len(c) > image.shape[1]
+        contour for contour in contours if len(contour) > image.shape[1]
     ])
 
     return line_contours
@@ -104,7 +113,7 @@ def get_x_coords_from_vstack(image_vstack_value):
                 x_coords.append(coords_average)
                 coords_cache = []
 
-        return np.asarray(x_coords)
+    return np.asarray(x_coords)
 
 
 def reject_outliers(gaps_data, len_range):

@@ -64,23 +64,29 @@ def make_binary_image(gray_image, thresh_correction=-0.1, is_invert=True):
         return binary_image
 
 
-def make_dilated_image(image: np.ndarray, footprint: np.ndarray, is_invert: bool = True) -> np.ndarray:
+def make_dilated_image(image: np.ndarray, footprint: np.ndarray, is_invert: bool = True,
+                       thresh_correction: float = None) -> np.ndarray:
     """
     dilation이 적용된 binary 이미지를 반환함
 
     :param image: dilation을 적용할 이미지
     :param footprint: dilation을 적용하는 정도
     :param is_invert: 이미지를 반전시킬 것인지. 기본값은 True
+    :param thresh_correction: binary 이미지를 만들 시 적용할 thresh correction. 기본값은 None
     :returns: dilation이 적용된 이미지를 반환함
     """
-    inverted_binary_image = make_binary_image(image)
-    dilated_image = morphology.dilation(inverted_binary_image, footprint)
+    if thresh_correction is not None:
+        binary_image = make_binary_image(image, thresh_correction, is_invert)
+    else:
+        binary_image = make_binary_image(image, is_invert=is_invert)
+
+    dilated_image = morphology.dilation(binary_image, footprint)
 
     return dilated_image
 
 
 def make_masked_image_from_contour(image, contour):
-    mask = np.zeros(image, dtype=bool)
+    mask = np.zeros(image.shape, dtype=bool)
     mask[np.round_(contour[:, 0]).astype(np.int),
          np.round_(contour[:, 1]).astype(np.int)] = 1
     mask = ndimage.binary_fill_holes(mask)

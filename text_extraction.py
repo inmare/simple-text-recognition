@@ -51,19 +51,20 @@ def create_random_data():
 
     print("Extracting textbox finished")
     debug.show_elapsed_time(start_time)
-    graph.show_image(textbox_images[0], (20, 20))
+    # graph.show_image(textbox_images[0], (20, 20))
 
-    line_footprint = np.ones((1, 25))
+    line_info = settings["line"]
+    line_footprint = np.ones(tuple(line_info["footprint"]))
     line_images = []
     line_avg_height = 0
     page_cnt = 1
     line_cnt = 1
 
-    for gray_image in gray_images:
-        line_contours = data.get_line_contour_from_image(gray_image, line_footprint)
+    for textbox_image in textbox_images:
+        line_contours = data.get_line_contour_from_image(textbox_image, line_footprint)
 
         for line_contour in line_contours:
-            line_image = crop.line_from_textbox(gray_image, line_contour)
+            line_image = crop.line_from_textbox(textbox_image, line_contour)
             line_avg_height += line_image.shape[0]
             line_images.append(line_image)
             # TODO debug 모듈에 오류감지함수 추가하기
