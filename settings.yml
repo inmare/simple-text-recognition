@@ -26,7 +26,8 @@ line:
 
 char:
   footprint: [ 1, 2 ]
-  charThresh: 0.5
+  charsThresh: 0.5 # 뭉쳐있는 글자들을 분리하기 위해 사용할 thresh 보정 값
 
+gapDataThresh: null # gap data 추출을 위한 binarization에 사용할 thresh 보정 값
 gapOutlierRange: 5.0
 npzPath: "./data/"

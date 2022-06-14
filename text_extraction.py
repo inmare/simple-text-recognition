@@ -4,7 +4,6 @@ import image_cropping as crop
 import image_data as data
 import numpy as np
 import time
-import os
 import debug
 import graph
 import yaml
@@ -79,20 +78,25 @@ def create_random_data():
     print("Extracting line images finished")
     debug.show_elapsed_time(start_time)
 
-    char_footprint = np.ones((1, 2))
-    len_range = 5.
+    char_info = settings["char"]
+    # 현재는 Ubuntu Mono R을 쓰고 있기에 footprint의 값으로 (1,2)를 해둠
+    # 조금 더 세로가 두꺼우면 get_gaps_data함수의 오류를 방지하는데 도움이 될 것 같아서임
+    # 만약 Ubuntu Mono B를 사용한다면 상황에 따라 dilation대신 binarization 사용
+    char_footprint = np.ones(tuple(char_info["footprint"]))
+    outlier_range = settings["gapOutlierRange"]
     line_gaps_width, line_x_coords = data.get_gaps_data(line_images, char_footprint)
 
-    min_max_gaps, max_width = data.get_gaps_width(line_gaps_width, len_range)
+    min_max_gaps, max_width = data.get_gaps_width(line_gaps_width, outlier_range)
 
     print("Extracting gap data finished")
+    debug.show_elapsed_time(start_time)
 
     char_image_len = line_avg_height * (max_width + 1)
     char_data_array_len = char_image_len + max_width + line_avg_height + 1
 
     skeleton_thresh = 0.5
     char_size_dict = {
-        "char_w": max_width,
+        "char_w": max_width + 1,
         "char_h": line_avg_height,
         "data_len": char_data_array_len
     }
@@ -112,26 +116,47 @@ def create_random_data():
 
         for j in range(len(gaps_width)):
             gap_width = gaps_width[j]
+            # 보정을 위해서 x_end에 1을 추가함
             x_start, x_end = x_coords[j], x_coords[j + 1]
             y_start, y_end = 0, line_image.shape[0]
 
             if gap_width > min_max_gap[1]:
                 chars_image = line_image[y_start:y_end, x_start:x_end]
-                sep_chars = crop.char_from_chars(chars_image, skeleton_thresh, char_size_dict, min_max_gap)
+                # TODO 글자들을 분리하는 함수와 데이터를 추가하는 함수를 분리하기
+                try:
+                    sep_chars = crop.char_from_chars(chars_image, skeleton_thresh, char_size_dict, min_max_gap)
+                except Exception as e:
+                    print("chars")
+                    print(e)
+                    print(line_cnt, char_cnt)
+                    b_imgs = process.make_binary_image(chars_image)
+                    graph.show_char(chars_image, b_imgs)
+                    continue
                 for k in range(sep_chars.shape[0]):
                     char_data_array[char_cnt:] = sep_chars[k, :]
                     char_cnt += 1
             else:
                 char_image = line_image[y_start:y_end, x_start:x_end]
-                char_image = process.move_char_image_to_center(char_image, skeleton_thresh, char_size_dict)
+                try:
+                    char_image = process.move_char_image_to_center(char_image, skeleton_thresh, char_size_dict)
+                except Exception as e:
+                    print(e)
+                    print(line_cnt, char_cnt)
+                    b_img = process.make_binary_image(char_image, thresh_correction=-0.2)
+                    graph.show_char(char_image, b_img)
+                    continue
+                    # return 1
                 char_data = data.add_stack_value_to_image(char_image)
                 char_data_array[char_cnt, :] = char_data
                 char_cnt += 1
         debug.show_elapsed_time_per_line(start_time, line_start_time, line_cnt + 1, char_cnt)
+        # TODO 글자들의 개수에 따라 이상을 감지하는 함수 추가하기
+        # 정상적인 글자들의 데이터를 모은 뒤 어떤 글자들과도 일정 수준 일치하지 않으면 에러를 반환하는
+        # 함수를 만들수도 있음
         line_cnt += 1
 
     npz_path = "./data/ascii-data"
-    np.savez_compressed(npz_path, char_data_array=char_data_array, random_text=random_text)
+    # np.savez_compressed(npz_path, train_data=char_data_array, label_data=random_text)
 
     end_time = time.time()
     elapsed_time = end_time - start_time

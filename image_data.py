@@ -116,10 +116,10 @@ def get_x_coords_from_vstack(image_vstack_value):
     return np.asarray(x_coords)
 
 
-def reject_outliers(gaps_data, len_range):
+def reject_outliers(gaps_data, outlier_range):
     len_from_median = np.abs(gaps_data - np.median(gaps_data))
 
-    return gaps_data[len_from_median < len_range]
+    return gaps_data[len_from_median < outlier_range]
 
 
 def get_gaps_data(line_images, char_footprint):
@@ -140,13 +140,13 @@ def get_gaps_data(line_images, char_footprint):
     return line_gaps_width, line_x_coords
 
 
-def get_gaps_width(line_gaps_width, len_range):
+def get_gaps_width(line_gaps_width, outlier_range):
     # 줄 별 min, max gap 저장
     min_max_gaps = []
     max_width = 0
 
     for gaps_width in line_gaps_width:
-        gaps_data_no_outlier = reject_outliers(gaps_width, len_range)
+        gaps_data_no_outlier = reject_outliers(gaps_width, outlier_range)
 
         min_gap_width = gaps_data_no_outlier.min().astype(np.int8)
         max_gap_width = gaps_data_no_outlier.max().astype(np.int8)
@@ -156,7 +156,7 @@ def get_gaps_width(line_gaps_width, len_range):
         if max_width < max_gap_width:
             max_width = max_gap_width
 
-        return min_max_gaps, max_width
+    return min_max_gaps, max_width
 
 
 def get_crop_point_from_vstack(image_vstack, min_max_gap):
@@ -167,6 +167,7 @@ def get_crop_point_from_vstack(image_vstack, min_max_gap):
     x_coords = []
 
     # start_point = np.where(np.floor(image_vstack[:min_gap_width] * 10) == 0.)
+    # TODO min_gap_width 대신 더 좋은 기준을 추가할 수도 있음
     start_point = np.where(image_vstack[:min_gap_width] == 0.)
 
     if len(start_point[0]):

@@ -96,8 +96,8 @@ def make_masked_image_from_contour(image, contour):
 
 
 def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict):
-    image_h = char_size_dict["avg_height"]
-    image_w = char_size_dict["max_width"]
+    image_h = char_size_dict["char_h"]
+    image_w = char_size_dict["char_w"]
 
     blank_char_image = np.ones((image_h, image_w))
     # 오류를 방지하기 위해 기존의 이미지에 여백을 1픽셀을 준 새 이미지 생성
@@ -105,28 +105,38 @@ def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict):
     padded_char_image[1:char_image.shape[0] + 1, 1:char_image.shape[1] + 1] = char_image
 
     # TODO np.subtract 사용 대신 새로운 함수 하나 만들기
-    inverted_char_image = np.subtract(1 - padded_char_image, 1 - padded_char_image,
-                                      where=1 - padded_char_image < skeleton_thresh)
-    binary_char_image = make_binary_image(inverted_char_image, thresh_correction=0.1, is_invert=False)
+    # inverted_char_image = np.subtract(1 - padded_char_image, 1 - padded_char_image,
+    #                                   where=padded_char_image > 0.5)
+    # TODO thresh_correction부분도 설정에 추가하기
+    # binary_char_image = make_binary_image(inverted_char_image, thresh_correction=0., is_invert=False)
+    binary_char_image = make_binary_image(padded_char_image)
+
     filled_char_image = ndimage.binary_fill_holes(binary_char_image)
 
     labeled_image, label_num = ndimage.label(1 - filled_char_image)
     masked_image = labeled_image == 0
-    min_x, min_y, max_x, max_y = data.get_coords_from_binary_image(masked_image)
 
-    # :, ;, ?...와 같이 요소가 2개인 글자들의 경우
-    if label_num > 1:
-        masked_image = labeled_image == 1
-        mx, my, Mx, My = data.get_coords_from_binary_image(masked_image)
-        min_x = mx if mx < min_x else min_x
-        min_y = my if my < min_y else min_y
-        max_x = Mx if Mx > max_x else max_x
-        max_y = My if My > max_y else max_y
+    try:
+        min_x, min_y, max_x, max_y = data.get_coords_from_binary_image(masked_image)
+
+        # :, ;, ?...와 같이 요소가 2개인 글자들의 경우
+        if label_num > 1:
+            masked_image = labeled_image == 1
+            mx, my, Mx, My = data.get_coords_from_binary_image(masked_image)
+            min_x = mx if mx < min_x else min_x
+            min_y = my if my < min_y else min_y
+            max_x = Mx if Mx > max_x else max_x
+            max_y = My if My > max_y else max_y
+
+    except Exception as e:
+        # graph.show_char(padded_char_image, binary_char_image)
+        graph.show_image(binary_char_image, (1, 1))
+        raise
 
     # 보정을 위해 max_x에 1을 더해줌. 추후에 수정 가능
-    cropped_char_image = padded_char_image[min_y:max_y, min_x:max_x + 1]
+    cropped_char_image = padded_char_image[min_y:max_y - 1, min_x:max_x + 1]
     char_w = max_x - min_x + 1
-    char_h = max_y - min_y
+    char_h = max_y - min_y - 1
 
     x_start = int(round((image_w - char_w) / 2))
     y_start = int(round((image_h - char_h) / 2))

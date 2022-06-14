@@ -20,5 +20,21 @@ def show_image(image, graph_size: tuple, title: str = None):
     plt.show()
 
 
+def show_char(char_img, binary_img):
+    plt.figure(figsize=(2, 1))
+
+    plt.subplot(121)
+    plt.imshow(char_img)
+    plt.axis("off")
+    plt.margins(x=0, y=0)
+
+    plt.subplot(122)
+    plt.imshow(binary_img)
+    plt.axis("off")
+    plt.margins(x=0, y=0)
+
+    plt.show()
+
+
 if __name__ == "__main__":
     pass
