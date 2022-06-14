@@ -5,7 +5,13 @@ import graph
 import math
 
 
-def get_coords_from_contour(contour):
+def get_coords_from_contour(contour) -> tuple:
+    """
+    contour의 좌표값들중 x와 y좌표의 최대, 최솟값을 반환함
+
+    :param contour: ndarray형태의 x와 y좌표값들의 배열
+    :returns: (min_x, min_y, max_x, max_y)의 형태로 좌표값을 반환함
+    """
     y_coords, x_coords = np.hsplit(contour, 2)
     y_coords = np.hstack(y_coords)
     x_coords = np.hstack(x_coords)
@@ -38,11 +44,20 @@ def get_coords_from_binary_image(binary_image):
     return min_x, min_y, max_x, max_y
 
 
-def get_line_contour_from_image(image, line_footprint):
+def get_line_contour_from_image(image: np.ndarray, line_footprint: np.ndarray) -> np.ndarray:
+    """
+    이미지로부터 줄들의 contour좌표를 가지고 있는 배열을 반환함
+
+    :param image: 줄을 추출하고 싶은 이미지
+    :param line_footprint: 줄을 추출하기 위한 dilation함수에서 인자로 넣을 footprint
+    :returns: 각 줄의 contour좌표가 있는 numpy배열
+    """
     dilated_image = process.make_dilated_image(image, line_footprint)
     contours = measure.find_contours(dilated_image, 0)
+    # 이미지의 가로길이보다 contour의 길이가 더 길면 줄의 contour이라고 가정
+    # 추후에 더 좋은 방법이 나오면 수정할 수도 있음
     line_contours = np.array([
-        c for c in contours if len(c) > image.shape[1]
+        contour for contour in contours if len(contour) > image.shape[1]
     ])
 
     return line_contours
@@ -98,13 +113,13 @@ def get_x_coords_from_vstack(image_vstack_value):
                 x_coords.append(coords_average)
                 coords_cache = []
 
-        return np.asarray(x_coords)
+    return np.asarray(x_coords)
 
 
-def reject_outliers(gaps_data, len_range):
+def reject_outliers(gaps_data, outlier_range):
     len_from_median = np.abs(gaps_data - np.median(gaps_data))
 
-    return gaps_data[len_from_median < len_range]
+    return gaps_data[len_from_median < outlier_range]
 
 
 def get_gaps_data(line_images, char_footprint):
@@ -125,13 +140,13 @@ def get_gaps_data(line_images, char_footprint):
     return line_gaps_width, line_x_coords
 
 
-def get_gaps_width(line_gaps_width, len_range):
+def get_gaps_width(line_gaps_width, outlier_range):
     # 줄 별 min, max gap 저장
     min_max_gaps = []
     max_width = 0
 
     for gaps_width in line_gaps_width:
-        gaps_data_no_outlier = reject_outliers(gaps_width, len_range)
+        gaps_data_no_outlier = reject_outliers(gaps_width, outlier_range)
 
         min_gap_width = gaps_data_no_outlier.min().astype(np.int8)
         max_gap_width = gaps_data_no_outlier.max().astype(np.int8)
@@ -141,7 +156,7 @@ def get_gaps_width(line_gaps_width, len_range):
         if max_width < max_gap_width:
             max_width = max_gap_width
 
-        return min_max_gaps, max_width
+    return min_max_gaps, max_width
 
 
 def get_crop_point_from_vstack(image_vstack, min_max_gap):
@@ -152,6 +167,7 @@ def get_crop_point_from_vstack(image_vstack, min_max_gap):
     x_coords = []
 
     # start_point = np.where(np.floor(image_vstack[:min_gap_width] * 10) == 0.)
+    # TODO min_gap_width 대신 더 좋은 기준을 추가할 수도 있음
     start_point = np.where(image_vstack[:min_gap_width] == 0.)
 
     if len(start_point[0]):
