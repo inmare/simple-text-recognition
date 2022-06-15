@@ -1,0 +1,34 @@
+textGeneration:
+  seed: 1
+  textHLen: 220
+  textVLen: 173
+  pageLen: 1
+  mode: "ascii" # hex, 후에 user input을 통해 받을 수 있도록 수정하기
+
+image:
+  imagePath: "./images/"
+  imagePrefix: "ascii-page-"
+  startPage: 1
+  endPage: 1
+
+textbox:
+  topMargin: 80
+  sideMargin: 50
+  footprint: [10, 5]
+
+imageDenoise:
+  denoiseAmount: 0.05
+  intensityRange: [10, 70] # [a, b] 하위 a%, 상위 b%의 값에 intensity rescale이 가해짐
+  noiseThresh: 0.05 # 이미지 전체의 노이즈의 최솟값
+
+line: # line만 분리하면 되기에 binarization를 덜 시키고 dilation을 더 시킴
+  footprint: [3, 30]
+  lineThresh: -0.4
+
+char:
+  footprint: [1, 2]
+  charsThresh: 0.5 # 뭉쳐있는 글자들을 분리하기 위해 사용할 thresh 보정 값
+
+gapDataThresh: null # gap data 추출을 위한 binarization에 사용할 thresh 보정 값
+gapOutlierRange: 5.0
+npzPath: "./data/"

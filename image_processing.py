@@ -19,7 +19,8 @@ def reduce_image_noise(image: np.ndarray, denoise_info: dict):
 
     intensity_range = tuple(denoise_info["intensityRange"])
     percentiles = np.percentile(image_tv, intensity_range)
-    image_minmax_scaled = exposure.rescale_intensity(image_tv, in_range=tuple(percentiles))
+    image_minmax_scaled = exposure.rescale_intensity(
+        image_tv, in_range=tuple(percentiles))
 
     # TODO np.subtract이 유의미한 결과를 가져오는지 확인 후 추가여부 결정
     # thresh = denoise_info["noiseThresh"]
@@ -51,7 +52,7 @@ def make_binary_image(gray_image, thresh_correction=-0.1, is_invert=True):
     흑백이지미를 binary 이미지로 변환한 이미지를 반환함
 
     :param gray_image: dilation을 적용할 이미지
-    :param thresh_correction: 1로 변환할 픽셀의 보정값. 값이 작을수록 binary정도가 강해짐
+    :param thresh_correction: 1로 변환할 픽셀의 보정값. 값이 작을수록 이진화가 덜 됨. 기본값은 -0.1
     :param is_invert: 이미지를 반전시킬 것인지. 기본값은 True
     :returns: binary 이미지를 반환함
     """
@@ -101,8 +102,10 @@ def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict):
 
     blank_char_image = np.ones((image_h, image_w))
     # 오류를 방지하기 위해 기존의 이미지에 여백을 1픽셀을 준 새 이미지 생성
-    padded_char_image = np.ones((char_image.shape[0] + 2, char_image.shape[1] + 2))
-    padded_char_image[1:char_image.shape[0] + 1, 1:char_image.shape[1] + 1] = char_image
+    padded_char_image = np.ones(
+        (char_image.shape[0] + 2, char_image.shape[1] + 2))
+    padded_char_image[1:char_image.shape[0] + 1,
+                      1:char_image.shape[1] + 1] = char_image
 
     # TODO np.subtract 사용 대신 새로운 함수 하나 만들기
     # inverted_char_image = np.subtract(1 - padded_char_image, 1 - padded_char_image,
@@ -117,7 +120,8 @@ def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict):
     masked_image = labeled_image == 0
 
     try:
-        min_x, min_y, max_x, max_y = data.get_coords_from_binary_image(masked_image)
+        min_x, min_y, max_x, max_y = data.get_coords_from_binary_image(
+            masked_image)
 
         # :, ;, ?...와 같이 요소가 2개인 글자들의 경우
         if label_num > 1:

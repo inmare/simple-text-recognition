@@ -44,21 +44,23 @@ def get_coords_from_binary_image(binary_image):
     return min_x, min_y, max_x, max_y
 
 
-def get_line_contour_from_image(image: np.ndarray, line_footprint: np.ndarray) -> np.ndarray:
+def get_line_contour_from_image(image: np.ndarray, line_footprint: np.ndarray, line_thresh: float) -> np.ndarray:
     """
     이미지로부터 줄들의 contour좌표를 가지고 있는 배열을 반환함
 
     :param image: 줄을 추출하고 싶은 이미지
     :param line_footprint: 줄을 추출하기 위한 dilation함수에서 인자로 넣을 footprint
+    :param line_thresh: dilation함수에서 인자로 넣을 보정값
     :returns: 각 줄의 contour좌표가 있는 numpy배열
     """
-    dilated_image = process.make_dilated_image(image, line_footprint)
+    dilated_image = process.make_dilated_image(
+        image, line_footprint, thresh_correction=line_thresh)
     contours = measure.find_contours(dilated_image, 0)
     # 이미지의 가로길이보다 contour의 길이가 더 길면 줄의 contour이라고 가정
     # 추후에 더 좋은 방법이 나오면 수정할 수도 있음
     line_contours = np.array([
         contour for contour in contours if len(contour) > image.shape[1]
-    ])
+    ], dtype=object)
 
     return line_contours
 
@@ -88,7 +90,8 @@ def get_image_stack_value(image, mode):
 
 def get_x_coords_from_vstack(image_vstack_value):
     image_w = image_vstack_value.shape[0]
-    zero_x_coords = np.setdiff1d(np.arange(image_w), np.where(np.ceil(image_vstack_value * 10) != 0.))
+    zero_x_coords = np.setdiff1d(np.arange(image_w), np.where(
+        np.ceil(image_vstack_value * 10) != 0.))
 
     x_coords = []
     coords_cache = []
@@ -128,7 +131,8 @@ def get_gaps_data(line_images, char_footprint):
     line_x_coords = []
 
     for line_image in line_images:
-        dilated_line_image = process.make_dilated_image(line_image, char_footprint)
+        dilated_line_image = process.make_dilated_image(
+            line_image, char_footprint)
         line_vstack_value = get_image_stack_value(dilated_line_image, mode="v")
 
         x_coords = get_x_coords_from_vstack(line_vstack_value)
@@ -176,7 +180,8 @@ def get_crop_point_from_vstack(image_vstack, min_max_gap):
     x_coords.append(start_x)
 
     while start_x + max_gap_width < image_vstack.shape[0]:
-        array_check_section = image_vstack[start_x + min_gap_width:start_x + max_gap_width]
+        array_check_section = image_vstack[start_x +
+                                           min_gap_width:start_x + max_gap_width]
         crop_point = np.argmin(array_check_section)
         crop_point += start_x + min_gap_width
         x_coords.append(crop_point)
@@ -187,7 +192,8 @@ def get_crop_point_from_vstack(image_vstack, min_max_gap):
 
 def add_stack_value_to_image(char_image):
     flatten_char_image = char_image.ravel()
-    char_data = np.append(flatten_char_image, get_image_stack_value(char_image, "v"))
+    char_data = np.append(flatten_char_image,
+                          get_image_stack_value(char_image, "v"))
     char_data = np.append(char_data, get_image_stack_value(char_image, "h"))
 
     return char_data
