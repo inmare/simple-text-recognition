@@ -37,14 +37,15 @@ def index_to_page(json_path: str, idx: int) -> list:
     return [page_idx, line_idx, char_idx]
 
 
-def show_elapsed_time_per_line(start_time, line_start_time, cnt, char_cnt):
+def show_elapsed_time_per_line(start_time, line_start_time, line_cnt, char_cnt, text_h_len):
     end_time = time.time()
 
     line_elapsed_time = end_time - start_time
     line_elapsed_min = int(line_elapsed_time // 60)
     line_elapsed_sec = round((line_elapsed_time % 60) * 10) / 10
 
-    print(f"line {cnt} took: {line_elapsed_min}:{line_elapsed_sec} a:{cnt} e:{char_cnt}")
+    print(
+        f"line {line_cnt} took: {line_elapsed_min}m{line_elapsed_sec}s expected:{line_cnt * text_h_len} actual:{char_cnt}")
 
 
 def show_elapsed_time(start_time: float):
