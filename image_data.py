@@ -187,6 +187,9 @@ def get_crop_point_from_vstack(image_vstack, min_max_gap):
         x_coords.append(crop_point)
         start_x = crop_point
 
+    if image_vstack.shape[0] - start_x > min_gap_width:
+        x_coords.append(image_vstack.shape[0] - 1)
+
     return x_coords
 
 
