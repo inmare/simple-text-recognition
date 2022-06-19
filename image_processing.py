@@ -96,7 +96,7 @@ def make_masked_image_from_contour(image, contour):
     return 1 - masked_image
 
 
-def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict, char_cnt):
+def move_char_image_to_center(char_image, clean_thresh, char_size_dict):
     image_h = char_size_dict["char_h"]
     image_w = char_size_dict["char_w"]
 
@@ -110,9 +110,10 @@ def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict, char_
     # TODO np.subtract 사용 대신 새로운 함수 하나 만들기
     # inverted_char_image = np.subtract(1 - padded_char_image, 1 - padded_char_image,
     #                                   where=padded_char_image > 0.5)
-    binary_char_image = make_binary_image(padded_char_image, skeleton_thresh)
+    # binary_char_image = make_binary_image(padded_char_image, skeleton_thresh)
+    cleaned_binary_image = 1 - (padded_char_image > clean_thresh)
 
-    filled_char_image = ndimage.binary_fill_holes(binary_char_image)
+    filled_char_image = ndimage.binary_fill_holes(cleaned_binary_image)
 
     labeled_image, label_num = ndimage.label(1 - filled_char_image)
     masked_image = labeled_image == 0
@@ -129,10 +130,9 @@ def move_char_image_to_center(char_image, skeleton_thresh, char_size_dict, char_
         max_x = Mx if Mx > max_x else max_x
         max_y = My if My > max_y else max_y
 
-    # 보정을 위해 max_x에 1을 더해줌. 추후에 수정 가능
-    cropped_char_image = padded_char_image[min_y:max_y - 1, min_x:max_x]
-    char_w = (max_x) - min_x
-    char_h = (max_y - 1) - min_y
+    cropped_char_image = padded_char_image[min_y:max_y, min_x:max_x]
+    char_w = max_x - min_x
+    char_h = max_y - min_y
 
     x_start = int(round((image_w - char_w) / 2))
     y_start = int(round((image_h - char_h) / 2))
