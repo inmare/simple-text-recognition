@@ -28,7 +28,8 @@ line: # line만 분리하면 되기에 binarization를 덜 시키고 dilation을
 char:
   footprint: [1, 2]
   charsThresh: -0.2 # 뭉쳐있는 글자들을 분리하기 위해 사용할 thresh 보정 값
-  skeletonThresh: -0.2 # 글자들을 가운대로 이동시키기 위해 사용할 thresh 보정 값
+  cleanThresh: 0.5 # 글자들을 가운대로 이동시키기 위해 사용할 thresh 보정 값
+  # minMaxCorrection: [-1, 0, 1, 0] # [min_x, min_y, max_x, max_y] 순으로 보정해줄 값
 
 gapDataThresh: null # gap data 추출을 위한 binarization에 사용할 thresh 보정 값
 gapOutlierRange: 5.0
